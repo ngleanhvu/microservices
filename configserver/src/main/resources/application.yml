@@ -2,12 +2,25 @@ spring:
   application:
     name: "configserver"
   profiles:
-    active: native
+    active: git
   cloud:
     config:
       server:
-        native:
-          search-locations: "classpath:/config"
+        git:
+          uri: git@github.com:ngleanhvu/microservices-config.git
+          default-label: main
+          timeout: 5
+          clone-on-start: true
+          force-pull: true
+  rabbitmq:
+    host: localhost
+    username: guest
+    password: guest
+    port: 5672
+
+
+encrypt:
+  key: "LEKJWR3U1U23I31J23JKN123HCL2K1JD24JIL"
 
 server:
   port: 8071
