@@ -1,0 +1,10 @@
+build:
+  version: "3.0"
+
+accounts:
+  message: "Welcome to EazyBank accounts related local APIs"
+  contactDetails:
+    name: "Nguyen Le Anh Vu"
+    email: "vunguyen.0208200402@gmail.com"
+  onCallSupport:
+    - (+84) 968027559

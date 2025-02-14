@@ -1,0 +1,10 @@
+build:
+  version: "3.0"
+
+loans:
+  message: "Welcome to EazyBank loans related local APIs"
+  contactDetails:
+    name: "Nguyen Le Anh Vu"
+    email: "vunguyen.0208200402@gmail.com"
+  onCallSupport:
+    - (+84) 968027559
