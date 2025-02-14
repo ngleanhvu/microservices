@@ -3,6 +3,8 @@ server:
 spring:
   application:
     name: "cards"
+  profiles:
+    active: "prod"
   datasource:
     url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
@@ -18,13 +20,17 @@ spring:
     show-sql: true
   config:
     import: "optional:configserver:http://localhost:8071/"
+  rabbitmq:
+    host: localhost
+    username: guest
+    password: guest
+    port: 5672
+
 build:
   version: "3.0"
 
-cards:
-  message: "Welcome to EazyBank accounts related local APIs"
-  contactDetails:
-    name: "Nguyen Le Anh Vu"
-    email: "vunguyen.0208200402@gmail.com"
-  onCallSupport:
-    - (+84) 968027559
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
