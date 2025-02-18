@@ -1,5 +1,5 @@
 # Base image
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-jdk-slim
 
 # Information around who maintains the image
 LABEL author=ngleanhvu.com
