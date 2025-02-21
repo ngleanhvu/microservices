@@ -7,9 +7,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="eureka" />
         <module name="configserver" />
       </profile>
-      <profile name="Annotation profile for loans" enabled="true">
+      <profile name="Annotation profile for cards" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -27,6 +28,7 @@
       <module name="accounts" options="-parameters" />
       <module name="cards" options="-parameters" />
       <module name="configserver" options="-parameters" />
+      <module name="eureka" options="-parameters" />
       <module name="loans" options="-parameters" />
     </option>
   </component>
