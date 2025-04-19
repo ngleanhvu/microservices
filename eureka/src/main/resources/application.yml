@@ -1,17 +1,15 @@
+
 server:
-  port: 8761
+  port: 8070
 
 spring:
   application:
-    name: eureka
+    name: "eureka"
   config:
     import: "optional:configserver:http://localhost:8071/"
 
+
 eureka:
-  instance:
-    hostname: localhost
-  server:
-    enable-self-preservation: false
   client:
     register-with-eureka: false
     fetch-registry: false
@@ -22,9 +20,9 @@ management:
       exposure:
         include: "*"
   health:
-    readinessstate:
+    readiness-state:
       enabled: true
-    livenessstate:
+    liveness-state:
       enabled: true
   endpoint:
     health:
