@@ -167,7 +167,6 @@ services:
       file: common-config.yml
       service: microservice-eureka-config
 
-
 networks:
   microservices-network:
     driver: "bridge"

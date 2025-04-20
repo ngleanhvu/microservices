@@ -1,26 +1,17 @@
 server:
-  port: 8080
+  port: 8072
+
 spring:
   application:
-    name: "accounts"
-  profiles:
-    active: "qa"
-  datasource:
-    url: jdbc:mysql://localhost:3306/accountsdb
-    username: root
-    password: 1234
-  jpa:
-    show-sql: true
-  sql:
-    init:
-      mode: always
+    name: "gatewayserver"
   config:
     import: "optional:configserver:http://localhost:8071/"
-  rabbitmq:
-    host: "localhost"
-    port: 5672
-    username: "guest"
-    password: "guest"
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lowerCaseServiceId: true
 
 management:
   endpoints:
@@ -28,8 +19,8 @@ management:
       exposure:
         include: "*"
   endpoint:
-    shutdown:
-      access: unrestricted
+    gateway:
+      enabled: true
   info:
     env:
       enabled: true
@@ -45,7 +36,7 @@ eureka:
 
 info:
   app:
-    name: "accounts"
+    name: "gatewayserver"
     description: "Eazy Bank Accounts Application"
     version: "1.0.0"
 
@@ -53,4 +44,4 @@ logging:
   level:
     com:
       eazybytes:
-        accounts: DEBUG
+        gatewayserver: DEBUG

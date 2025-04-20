@@ -148,7 +148,6 @@ services:
     extends:
       file: common-config.yml
       service: network-deploy-service
-
   gatewayserver:
     image: "anhvubadai/gatewayserver:s9"
     container_name: gatewayserver-ms
@@ -166,7 +165,6 @@ services:
     extends:
       file: common-config.yml
       service: microservice-eureka-config
-
 
 networks:
   microservices-network:

@@ -2,21 +2,22 @@ spring:
   application:
     name: "configserver"
   profiles:
+    # active: native
     active: git
   cloud:
     config:
       server:
         git:
-          uri: https://github.com/ngleanhvu/microservices-config.git
+          uri: "https://github.com/ngleanhvu/microservices-config.git"
           default-label: main
           timeout: 5
           clone-on-start: true
           force-pull: true
-encrypt:
-  key: "LEKJWR3U1U23I31J23JKN123HCL2K1JD24JIL"
-
-server:
-  port: 8071
+  rabbitmq:
+    host: "localhost"
+    port: 5672
+    username: "guest"
+    password: "guest"
 
 management:
   endpoints:
@@ -24,11 +25,17 @@ management:
       exposure:
         include: "*"
   health:
-    readinessstate:
+    readiness-state:
       enabled: true
-    livenessstate:
+    liveness-state:
       enabled: true
   endpoint:
     health:
       probes:
         enabled: true
+
+encrypt:
+  key: "45D81EC1EF61DF9AD8D3E5BB397F9"
+
+server:
+  port: 8071
