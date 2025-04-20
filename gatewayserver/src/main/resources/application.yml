@@ -1,9 +1,17 @@
+server:
+  port: 8072
+
 spring:
   application:
     name: "gatewayserver"
   config:
     import: "optional:configserver:http://localhost:8071/"
-
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lowerCaseServiceId: true
 
 management:
   endpoints:
@@ -17,8 +25,23 @@ management:
     env:
       enabled: true
 
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
 info:
   app:
     name: "gatewayserver"
     description: "Eazy Bank Accounts Application"
     version: "1.0.0"
+
+logging:
+  level:
+    com:
+      eazybytes:
+        gatewayserver: DEBUG
