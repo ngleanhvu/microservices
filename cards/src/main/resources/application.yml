@@ -33,6 +33,10 @@ management:
   endpoint:
     shutdown:
       access: unrestricted
+    health:
+      probes:
+        enabled: true
+
   info:
     env:
       enabled: true

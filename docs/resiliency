@@ -1,0 +1,5 @@
+Circuit breaker: used to stop making requests when a service invoked is failing
+Fallbacks: Alternative paths to failing request (cache, alternative service)
+Retry: Used to make retries when a service has temporarily failed
+Rate limit: Limits the number of calls tha a service can receive in a time
+Bulkhead: Limits the number of outgoing concurrent requests to a service to avoid overloading
