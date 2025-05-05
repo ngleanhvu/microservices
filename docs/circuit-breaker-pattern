@@ -1,0 +1,16 @@
+Circuit breaker pattern is a pattern help prevent recall many times from failure service
+in order to system is stable and avoid failure
+
+There are 3 state
+
+- Closed: accept client requests
+- Open: when reach a threshold request failing -> switch open state which make request fail fast
+- Half-open: Periodically Circuit breaker check if the issue is solved by allowing few request,
+based on the result it will decide go to OPEN or CLOSED
+
+CLOSED -(failure rate above the threshold) -> OPEN -(after wait duration) -> HALF-OPEN
+
+In HALF-OPEN:
+if failure rate above the threshold -> switch OPEN
+either switch CLOSED
+

@@ -1,0 +1,9 @@
+feat:	    Thêm tính năng mới
+fix:	    Sửa lỗi
+docs:	    Thay đổi tài liệu (README, chú thích code, v.v.)
+style:	    Thay đổi về định dạng, không ảnh hưởng logic (lint...)
+refactor:	Tái cấu trúc code, không thay đổi tính năng
+test:	    Thêm hoặc sửa test
+chore:	    Các việc lặt vặt, không liên quan đến logic (build, tool...)
+perf:	    Cải thiện hiệu năng
+ci:	        Cấu hình CI/CD
