@@ -51,7 +51,7 @@ services:
       SPRING_APPLICATION_NAME: "eureka"
 
   gatewayserver:
-    image: "anhvubadai/gatewayserver-ms:s10"
+    image: "anhvubadai/gatewayserver-ms:s10.1"
     container_name: gatewayserver-ms
     ports:
       - "8072:8072"
