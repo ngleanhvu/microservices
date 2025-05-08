@@ -21,6 +21,10 @@ spring:
     port: 5672
     username: "guest"
     password: "guest"
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
 
 management:
   endpoints:
