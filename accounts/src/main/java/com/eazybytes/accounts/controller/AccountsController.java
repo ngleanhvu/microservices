@@ -3,6 +3,8 @@ package com.eazybytes.accounts.controller;
 import com.eazybytes.accounts.constants.AccountsConstants;
 import com.eazybytes.accounts.dto.*;
 import com.eazybytes.accounts.service.IAccountsService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,6 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Eazy Bytes
@@ -97,8 +101,9 @@ public class AccountsController {
     public ResponseEntity<CustomerDetailsDto> fetchAccountDetails(@RequestHeader("eazybank-correlation-id") String correlationId,
                                                                   @RequestParam
                                                                @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
-                                                               String mobileNumber) {
+                                                               String mobileNumber) throws TimeoutException {
         logger.debug("eazybank-correlation-id found: {}", correlationId);
+//        throw new TimeoutException("Timeout");
         CustomerDetailsDto customerDetailsDto = iAccountsService.fetchAccount(correlationId, mobileNumber);
         return ResponseEntity.status(HttpStatus.OK).body(customerDetailsDto);
     }
@@ -199,8 +204,15 @@ public class AccountsController {
             )
     }
     )
+    @Retry(name = "getBuildVersion", fallbackMethod = "getBuildVersionFallback")
     @GetMapping("/build-version")
-    public ResponseEntity<String> getBuildVersion() {
+    public ResponseEntity<String> getBuildVersion() throws TimeoutException {
+        logger.debug("getBuildVersion");
+        throw new TimeoutException();
+    }
+
+    public ResponseEntity<String> getBuildVersionFallback(Throwable throwable) {
+        logger.debug("getBuildVersionFallback");
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(buildVersion);
@@ -257,10 +269,16 @@ public class AccountsController {
             )
     }
     )
+    @RateLimiter(name = "getContactInfo", fallbackMethod = "getContactInfoFallback")
     @GetMapping("/contact-info")
     public ResponseEntity<AccountsContactInfoDto> getContactInfo() {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(accountsContactInfoDto);
+    }
+
+    public ResponseEntity<String> getContactInfoFallback(Throwable throwable) {
+        return ResponseEntity
+                .ok("Java 17");
     }
 }

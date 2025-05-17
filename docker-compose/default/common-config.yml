@@ -13,6 +13,7 @@ services:
     environment:
       SPRING_RABBITMQ_HOST: "rabbit"
 
+
   microservice-configserver-config:
     extends:
       service: microservice-base-config

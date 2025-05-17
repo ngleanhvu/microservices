@@ -15,6 +15,20 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
+  redis:
+    image: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    extends:
+      service: network-deploy-service
+      file: common-config.yml
+
   configserver:
     image: "anhvubadai/configserver-ms:s9"
     container_name: configserver-ms
@@ -57,6 +71,7 @@ services:
       - "8072:8072"
     environment:
       SPRING_APPLICATION_NAME: "gatewayserver"
+      SPRING_DATA_REDIS_HOSTNAME: "redis"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
