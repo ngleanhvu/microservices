@@ -92,3 +92,7 @@ resilience4j.ratelimiter:
       timeoutDuration: 1000
       limitRefreshPeriod: 5000
       limitForPeriod: 1
+
+metrics:
+  tags:
+    application: ${spring-integration.version}
