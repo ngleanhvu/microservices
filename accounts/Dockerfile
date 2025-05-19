@@ -1,12 +1,24 @@
-# Base image
-FROM openjdk:21-jdk-slim
+# ---------- Stage 1: Build ----------
+FROM openjdk:21-jdk-slim AS build
+WORKDIR /app
 
-# Information around who maintains the image
-LABEL author=ngleanhvu.com
+# Copy toàn bộ project vào image
+COPY . .
 
-# Add the application's jar to the image
-COPY target/accounts-0.0.1-SNAPSHOT.jar accounts-0.0.1-SNAPSHOT.jar
+# Fix lỗi permission cho file mvnw
+RUN chmod +x mvnw
 
-# Excute the application
-ENTRYPOINT ["java", "-jar", "accounts-0.0.1-SNAPSHOT.jar"]
+# Build project (bỏ qua test)
+RUN ./mvnw clean package -DskipTests
 
+# ---------- Stage 2: Runtime ----------
+FROM gcr.io/distroless/java21:nonroot
+
+# Tạo thư mục làm việc
+WORKDIR /app
+
+# Copy file JAR từ stage build sang
+COPY --from=build /app/target/accounts-0.0.1-SNAPSHOT.jar app.jar
+
+# Khởi chạy ứng dụng
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

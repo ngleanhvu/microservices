@@ -1,12 +1,24 @@
-FROM openjdk:21-jdk-slim
+# ---------- Stage 1: Build ----------
+FROM openjdk:21-jdk-slim AS build
+WORKDIR /app
 
-LABEL author=ngleanhvu.com
+# Copy toàn bộ project vào image
+COPY . .
 
-# Cài đặt curl
-RUN apt-get update && apt-get install -y curl
+# Fix lỗi permission cho file mvnw
+RUN chmod +x mvnw
 
-# Copy ứng dụng vào container
-COPY target/gatewayserver-0.0.1-SNAPSHOT.jar gatewayserver-0.0.1-SNAPSHOT.jar
+# Build project (bỏ qua test)
+RUN ./mvnw clean package -DskipTests
 
-# Đặt ENTRYPOINT để chạy ứng dụng Java
-ENTRYPOINT ["java", "-jar", "gatewayserver-0.0.1-SNAPSHOT.jar"]
+# ---------- Stage 2: Runtime ----------
+FROM gcr.io/distroless/java21:nonroot
+
+# Tạo thư mục làm việc
+WORKDIR /app
+
+# Copy file JAR từ stage build sang
+COPY --from=build /app/target/gatewayserver-0.0.1-SNAPSHOT.jar app.jar
+
+# Khởi chạy ứng dụng
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

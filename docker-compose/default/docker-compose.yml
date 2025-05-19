@@ -120,22 +120,11 @@ services:
       - sh
       - -euc
       - |
-        mkdir -p /etc/grafana/provisioning/datasources
-        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
-        apiVersion: 1
-        datasources:
-          - name: Loki
-            type: loki
-            access: proxy
-            url: http://gateway:3100
-            jsonData:
-              httpHeaderName1: "X-Scope-OrgID"
-            secureJsonData:
-              httpHeaderValue1: "tenant1"
-        EOF
         /run.sh
     ports:
       - "3000:3000"
+    volumes:
+      - ../observation/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -227,8 +216,19 @@ services:
     networks:
       - microservices-network
 
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../observation/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   configserver:
-    image: "anhvubadai/configserver-ms:s11.0"
+    image: "anhvubadai/configserver-ms:s11.1"
     container_name: configserver-ms
     ports:
       - "8071:8071"
@@ -238,12 +238,15 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    depends_on:
+      rabbit:
+        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-base-config
 
   eureka:
-    image: "anhvubadai/eureka-ms:s11.0"
+    image: "anhvubadai/eureka-ms:s11.1"
     container_name: eureka-ms
     ports:
       - "8070:8070"
@@ -263,7 +266,7 @@ services:
       SPRING_APPLICATION_NAME: "eureka"
 
   gatewayserver:
-    image: "anhvubadai/gatewayserver-ms:s10.3"
+    image: "anhvubadai/gatewayserver-ms:s11.1"
     container_name: gatewayserver-ms
     ports:
       - "8072:8072"
@@ -273,28 +276,27 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_TIMEOUT: 1s
       SPRING_DATA_REDIS_CONNECT-TIMEOUT: 2s
-
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
   accounts:
-    image: "anhvubadai/accounts-ms:s11.0"
+    image: "anhvubadai/accounts-ms:s11.1"
     container_name: accounts-ms
     ports:
       - "8080:8080"
     healthcheck:
-      test: "curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1"
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health/readiness | grep UP || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 10s
     depends_on:
-      loansdb:
+      microservice-db:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "accounts"
-      SPRING_DATASOURCE_URL: "jdbc:mysql://accountsdb:3306/accountsdb"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://microservice-db:3306/microservice-db"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "root"
     extends:
@@ -302,22 +304,22 @@ services:
       service: microservice-eureka-config
 
   loans:
-    image: "anhvubadai/loans-ms:s11.0"
+    image: "anhvubadai/loans-ms:s11.1"
     container_name: loans-ms
     ports:
       - "8090:8090"
     healthcheck:
-      test: "curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1"
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/actuator/health/readiness | grep UP || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 10s
     depends_on:
-      loansdb:
+      microservice-db:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "loans"
-      SPRING_DATASOURCE_URL: "jdbc:mysql://loansdb:3306/loansdb"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://microservice-db:3306/microservice-db"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "root"
     extends:
@@ -325,31 +327,31 @@ services:
       service: microservice-eureka-config
 
   cards:
-    image: "anhvubadai/cards-ms:s11.0"
+    image: "anhvubadai/cards-ms:s11.1"
     container_name: cards-ms
     ports:
       - "9000:9000"
     healthcheck:
-      test: "curl --fail --silent localhost:9000/actuator/health/readiness | grep UP || exit 1"
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9000/actuator/health/readiness | grep UP || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 10s
     depends_on:
-      cardsdb:
+      microservice-db:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "cards"
-      SPRING_DATASOURCE_URL: "jdbc:mysql://cardsdb:3306/cardsdb"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://microservice-db:3306/microservice-db"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "root"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
-  accountsdb:
-    image: mysql
-    container_name: accountsdb
+  microservice-db:
+    image: mysql:8.0-oracle
+    container_name: microservice-db
     ports:
       - "3307:3306"
     healthcheck:
@@ -360,46 +362,46 @@ services:
       start_period: 10s
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: accountsdb
+      MYSQL_DATABASE: microservice-db
     extends:
       file: common-config.yml
       service: network-deploy-service
 
-  cardsdb:
-    image: mysql
-    container_name: cardsdb
-    ports:
-      - "3308:3306"
-    healthcheck:
-      test: [ "CMD","mysqladmin","ping","-h","localhost" ]
-      timeout: 10s
-      retries: 10
-      interval: 10s
-      start_period: 10s
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: cardsdb
-    extends:
-      file: common-config.yml
-      service: network-deploy-service
-
-  loansdb:
-    image: mysql
-    container_name: loansdb
-    ports:
-      - "3309:3306"
-    healthcheck:
-      test: [ "CMD","mysqladmin","ping","-h","localhost" ]
-      timeout: 10s
-      retries: 10
-      interval: 10s
-      start_period: 10s
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: loansdb
-    extends:
-      file: common-config.yml
-      service: network-deploy-service
+#  cardsdb:
+#    image: mysql
+#    container_name: cardsdb
+#    ports:
+#      - "3308:3306"
+#    healthcheck:
+#      test: [ "CMD","mysqladmin","ping","-h","localhost" ]
+#      timeout: 10s
+#      retries: 10
+#      interval: 10s
+#      start_period: 10s
+#    environment:
+#      MYSQL_ROOT_PASSWORD: root
+#      MYSQL_DATABASE: cardsdb
+#    extends:
+#      file: common-config.yml
+#      service: network-deploy-service
+#
+#  loansdb:
+#    image: mysql
+#    container_name: loansdb
+#    ports:
+#      - "3309:3306"
+#    healthcheck:
+#      test: [ "CMD","mysqladmin","ping","-h","localhost" ]
+#      timeout: 10s
+#      retries: 10
+#      interval: 10s
+#      start_period: 10s
+#    environment:
+#      MYSQL_ROOT_PASSWORD: root
+#      MYSQL_DATABASE: loansdb
+#    extends:
+#      file: common-config.yml
+#      service: network-deploy-service
 
 networks:
   microservices-network:
