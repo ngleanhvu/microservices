@@ -1,24 +1,21 @@
-# ---------- Stage 1: Build ----------
-FROM openjdk:21-jdk-slim AS build
+# Base image
+FROM openjdk:21-jdk-slim
+
+LABEL author=ngleanhvu.com
+
+RUN apt-get update && apt-get install -y wget && apt-get clean
+
+# Tạo thư mục chứa agent
+RUN mkdir -p /app/libs
+
+# Tải OpenTelemetry Java Agent
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.32.0/opentelemetry-javaagent.jar /app/libs/opentelemetry-javaagent-1.32.0.jar
+
+# Làm việc trong thư mục /app
 WORKDIR /app
 
-# Copy toàn bộ project vào image
-COPY . .
+# Copy file .jar vào đúng thư mục
+COPY target/accounts-0.0.1-SNAPSHOT.jar /app/accounts-0.0.1-SNAPSHOT.jar
 
-# Fix lỗi permission cho file mvnw
-RUN chmod +x mvnw
-
-# Build project (bỏ qua test)
-RUN ./mvnw clean package -DskipTests
-
-# ---------- Stage 2: Runtime ----------
-FROM gcr.io/distroless/java21:nonroot
-
-# Tạo thư mục làm việc
-WORKDIR /app
-
-# Copy file JAR từ stage build sang
-COPY --from=build /app/target/accounts-0.0.1-SNAPSHOT.jar app.jar
-
-# Khởi chạy ứng dụng
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Chạy ứng dụng với agent
+ENTRYPOINT ["java", "-javaagent:/app/libs/opentelemetry-javaagent-1.32.0.jar", "-jar", "accounts-0.0.1-SNAPSHOT.jar"]

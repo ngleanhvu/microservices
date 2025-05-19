@@ -1,0 +1,15 @@
+Distributed tracing giúp bạn theo dõi hành trình của một request duy nhất đi qua toàn bộ hệ thống các service.
+
+Một trace gồm:
+Trace ID: ID duy nhất đại diện cho toàn bộ hành trình của một request.
+Span: Đại diện cho một đơn vị công việc (ví dụ: xử lý trong 1 service, gọi HTTP, truy vấn DB).
+Parent-child relationship: Span có thể lồng nhau (ví dụ: gọi service B là một span con của service A).
+
+Ví dụ:
+
+Khi client gửi request → service A nhận request → gán một trace ID và span ID.
+Service A gọi service B → truyền trace ID và span ID qua HTTP headers.
+Service B nhận request → tạo span mới với trace ID và parent span ID.
+Lặp lại quá trình này cho đến hết chuỗi request.
+
+OpenTelemetry, Zipkin, Elastic APM, Jaeger

@@ -39,3 +39,11 @@ encrypt:
 
 server:
   port: 8071
+
+logging:
+  level:
+    com:
+      eazybytes:
+        configserver: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"

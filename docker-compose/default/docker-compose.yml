@@ -227,13 +227,27 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: tempo
+    command: -config.file /etc/tempo-config.yml
+    ports:
+      - "3110:3100"
+      - "4318:4318"
+      - "4317:4317"
+    volumes:
+      - ../observation/tempo/tempo.yml:/etc/tempo-config.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   configserver:
-    image: "anhvubadai/configserver-ms:s11.1"
+    image: "anhvubadai/configserver-ms:s11.3"
     container_name: configserver-ms
     ports:
       - "8071:8071"
     healthcheck:
-      test: "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8071/actuator/health/readiness | grep UP || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -244,9 +258,11 @@ services:
     extends:
       file: common-config.yml
       service: microservice-base-config
+    environment:
+      OTEL_SERVICE_NAME: "configserver"
 
   eureka:
-    image: "anhvubadai/eureka-ms:s11.1"
+    image: "anhvubadai/eureka-ms:s11.3"
     container_name: eureka-ms
     ports:
       - "8070:8070"
@@ -254,7 +270,7 @@ services:
       configserver:
         condition: service_healthy
     healthcheck:
-      test: "curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1"
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8070/actuator/health/readiness | grep UP || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -264,9 +280,10 @@ services:
       service: microservice-configserver-config
     environment:
       SPRING_APPLICATION_NAME: "eureka"
+      OTEL_SERVICE_NAME: "eureka"
 
   gatewayserver:
-    image: "anhvubadai/gatewayserver-ms:s11.1"
+    image: "anhvubadai/gatewayserver-ms:s11.3"
     container_name: gatewayserver-ms
     ports:
       - "8072:8072"
@@ -275,13 +292,14 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_TIMEOUT: 1s
-      SPRING_DATA_REDIS_CONNECT-TIMEOUT: 2s
+      SPRING_DATA_REDIS_CONNECT-TIME: 2s
+      OTEL_SERVICE_NAME: "gatewayserver"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
   accounts:
-    image: "anhvubadai/accounts-ms:s11.1"
+    image: "anhvubadai/accounts-ms:s11.3"
     container_name: accounts-ms
     ports:
       - "8080:8080"
@@ -299,12 +317,13 @@ services:
       SPRING_DATASOURCE_URL: "jdbc:mysql://microservice-db:3306/microservice-db"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "root"
+      OTEL_SERVICE_NAME: "accounts"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
   loans:
-    image: "anhvubadai/loans-ms:s11.1"
+    image: "anhvubadai/loans-ms:s11.3"
     container_name: loans-ms
     ports:
       - "8090:8090"
@@ -322,12 +341,13 @@ services:
       SPRING_DATASOURCE_URL: "jdbc:mysql://microservice-db:3306/microservice-db"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "root"
+      OTEL_SERVICE_NAME: "loans"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
   cards:
-    image: "anhvubadai/cards-ms:s11.1"
+    image: "anhvubadai/cards-ms:s11.3"
     container_name: cards-ms
     ports:
       - "9000:9000"
@@ -345,6 +365,7 @@ services:
       SPRING_DATASOURCE_URL: "jdbc:mysql://microservice-db:3306/microservice-db"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "root"
+      OTEL_SERVICE_NAME: "cards"
     extends:
       file: common-config.yml
       service: microservice-eureka-config

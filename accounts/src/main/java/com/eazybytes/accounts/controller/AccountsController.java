@@ -102,9 +102,9 @@ public class AccountsController {
                                                                   @RequestParam
                                                                @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
                                                                String mobileNumber) throws TimeoutException {
-        logger.debug("eazybank-correlation-id found: {}", correlationId);
-//        throw new TimeoutException("Timeout");
+        logger.info("Start fetch Account Details REST API");
         CustomerDetailsDto customerDetailsDto = iAccountsService.fetchAccount(correlationId, mobileNumber);
+        logger.info("End fetch Account Details REST API");
         return ResponseEntity.status(HttpStatus.OK).body(customerDetailsDto);
     }
 
