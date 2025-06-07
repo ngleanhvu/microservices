@@ -1,5 +1,6 @@
 package com.eazybytes.accounts.service.impl;
 
+import com.eazybytes.accounts.AccountsApplication;
 import com.eazybytes.accounts.constants.AccountsConstants;
 import com.eazybytes.accounts.dto.*;
 import com.eazybytes.accounts.entity.Accounts;
@@ -14,6 +15,9 @@ import com.eazybytes.accounts.service.IAccountsService;
 import com.eazybytes.accounts.service.client.CardsFeignClient;
 import com.eazybytes.accounts.service.client.LoansFeignClient;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +33,9 @@ public class AccountsServiceImpl  implements IAccountsService {
     private CustomerRepository customerRepository;
     private CardsFeignClient cardsFeignClient;
     private LoansFeignClient loansFeignClient;
+    private final StreamBridge streamBridge;
+    private final Logger logger = LoggerFactory.getLogger(AccountsServiceImpl.class);
+
     /**
      * @param customerDto - CustomerDto Object
      */
@@ -41,7 +48,20 @@ public class AccountsServiceImpl  implements IAccountsService {
                     +customerDto.getMobileNumber());
         }
         Customer savedCustomer = customerRepository.save(customer);
-        accountsRepository.save(createNewAccount(savedCustomer));
+        Accounts savedAccounts = accountsRepository.save(createNewAccount(savedCustomer));
+        sendCommunication(savedAccounts, savedCustomer);
+    }
+
+    private void sendCommunication(Accounts accounts, Customer customer) {
+        AccountsMsgDto accountsMsgDto = new AccountsMsgDto(
+                accounts.getAccountNumber(),
+                customer.getName(),
+                customer.getEmail(),
+                customer.getMobileNumber()
+        );
+        logger.info("Sending communication request for details {}", accountsMsgDto);
+        var result = streamBridge.send("sendCommunication-out-0", accountsMsgDto);
+        logger.info("Is sending communication request for details processed {}", result);
     }
 
     /**
@@ -127,5 +147,10 @@ public class AccountsServiceImpl  implements IAccountsService {
         return true;
     }
 
+    @Override
+    public boolean updateCommunication() {
+        logger.info("Updating communication");
+        return true;
+    }
 
 }
